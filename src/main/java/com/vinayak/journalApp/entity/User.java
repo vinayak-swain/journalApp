@@ -13,6 +13,7 @@ import java.util.List;
 
 @Document(collection = "users")
 @Data
+@Builder
 public class User {
 
 @Id
@@ -24,4 +25,5 @@ public class User {
     private String password;
 @DBRef
     private List<JournalEntry> journalEntries = new ArrayList<>();
+    private List<String> roles;
 }

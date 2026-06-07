@@ -1,0 +1,2613 @@
+PART 1: SPRING SECURITY FUNDAMENTALS (DETAILED LECTURE NOTES)
+
+Based on the transcript. These are full notes, preserving definitions, explanations, examples, and instructor reasoning rather than a short summary. Source:
+
+Chapter 1: Why Do We Need Spring Security?
+
+Until now, the application was sending only the username in the API request.
+
+Example:
+
+GET /journal/ram
+
+Here:
+
+Username is being passed directly in the URL.
+No password is being sent.
+No authentication exists.
+Anybody can access the endpoint.
+
+The instructor points out that this is completely insecure.
+
+For example:
+
+GET /journal/ram
+
+Anyone can call this endpoint and view Ram's journal entries.
+
+The current application has:
+
+No password verification
+No authentication
+No authorization
+Public access to all APIs
+
+This creates a security risk.
+
+Therefore, we need a mechanism that can:
+
+Verify who the user is.
+Verify what the user is allowed to do.
+
+Spring Security provides this mechanism.
+
+Chapter 2: What is Spring Security?
+Definition
+
+Spring Security is a security framework that handles:
+
+Authentication
+Authorization
+
+inside Spring Boot applications.
+
+The instructor explains that when we want to add username-password based security to our APIs, we generally use Spring Security.
+
+Chapter 3: Authentication
+Definition
+
+Authentication is:
+
+The process of verifying a user's identity.
+
+Authentication answers the question:
+
+"Who are you?"
+
+Examples of Authentication
+Example 1
+
+Username + Password
+
+Username: Ram
+Password: ram123
+
+System verifies credentials.
+
+If correct:
+
+Access granted.
+
+If incorrect:
+
+Access denied.
+
+Example 2
+
+Email + Password
+
+Email: ram@gmail.com
+Password: xyz123
+
+System checks whether credentials match.
+
+Example 3
+
+2FA (Two-Factor Authentication)
+
+User enters:
+
+Username
+Password
+
+Then receives:
+
+OTP
+
+Identity is verified through two steps.
+
+MongoDB Example
+
+Instructor gives an example:
+
+Suppose a user wants access to MongoDB.
+
+Question:
+
+Can the user connect to MongoDB?
+
+If username and password are correct:
+
+Yes.
+
+Then authentication is successful.
+
+Chapter 4: Authorization
+Definition
+
+Authorization is:
+
+The process of granting or denying access to specific resources or actions based on an authenticated user.
+
+Authorization answers:
+
+"What are you allowed to do?"
+
+MongoDB Example
+
+Suppose a user successfully connects to MongoDB.
+
+Authentication is complete.
+
+Now new questions arise:
+
+Can the user:
+
+Read data?
+Write data?
+Delete data?
+
+These permissions belong to authorization.
+
+Example
+
+User has:
+
+READ permission
+
+Then user can only read data.
+
+User has:
+
+READ
+WRITE
+
+Then user can:
+
+Read
+Insert
+Update
+
+User has:
+
+ADMIN
+
+Then user can perform administrative tasks.
+
+Authentication vs Authorization
+Authentication	Authorization
+Verifies identity	Verifies permissions
+"Who are you?"	"What can you do?"
+Username & Password	Roles & Permissions
+Login process	Access control
+Chapter 5: Adding Spring Security Dependency
+
+To use Spring Security, we add its dependency in:
+
+pom.xml
+
+The instructor emphasizes something important:
+
+Simply adding the dependency is enough to activate Spring Security.
+
+No additional code is required initially.
+
+What Happens After Adding Dependency?
+
+As soon as dependency is added:
+
+Spring Boot's auto-configuration becomes active.
+
+Definition
+
+Auto-configuration means:
+
+Spring Boot automatically configures security features for the application.
+
+Result
+
+All endpoints become secured automatically.
+
+Example:
+
+Before Security:
+
+GET /journal/ram
+
+works normally.
+
+After Security:
+
+GET /journal/ram
+
+returns:
+
+401 Unauthorized
+
+unless proper credentials are supplied.
+
+Chapter 6: Default Security Behaviour
+
+After adding Spring Security:
+
+Every endpoint becomes protected.
+
+To access any endpoint:
+
+Username and password are required.
+
+Default User
+
+Spring Security automatically creates a user.
+
+Username:
+
+user
+
+Password:
+
+Randomly generated.
+
+Example:
+
+Using generated security password:
+8f34a-45bc-89de
+
+The password appears in application logs.
+
+Custom Credentials
+
+Credentials can also be configured in:
+
+application.properties
+
+Example:
+
+spring.security.user.name=admin
+spring.security.user.password=admin123
+
+Instructor notes:
+
+In real applications we do not keep users in properties files.
+
+Instead:
+
+Users should come from the database.
+
+Chapter 7: HTTP Basic Authentication
+
+Spring Security uses:
+
+HTTP Basic Authentication
+
+by default.
+
+Definition
+
+HTTP Basic Authentication is a mechanism where:
+
+The client sends credentials inside an HTTP header.
+
+How It Works
+
+Client sends:
+
+Authorization: Basic encodedString
+Structure
+
+First:
+
+username:password
+
+Example:
+
+ram:ram123
+
+Then it is encoded using:
+
+Base64
+
+Result:
+
+cmFtOnJhbTEyMw==
+
+Then sent as:
+
+Authorization: Basic cmFtOnJhbTEyMw==
+Server Side Process
+
+When request reaches server:
+
+Step 1:
+
+Read Authorization header.
+
+Step 2:
+
+Decode Base64 string.
+
+Step 3:
+
+Extract:
+
+username
+password
+
+Step 4:
+
+Verify credentials.
+
+Step 5:
+
+If credentials are valid:
+
+Access Granted
+
+Step 6:
+
+If credentials are invalid:
+
+401 Unauthorized
+Postman Demonstration Explained
+
+Instructor shows Postman.
+
+Initially:
+
+GET /journal/ram
+
+works.
+
+After adding Spring Security:
+
+Request fails.
+
+Reason:
+
+Authorization header missing.
+
+Then instructor goes to:
+
+Authorization Tab
+
+and selects:
+
+Basic Auth
+
+Provides:
+
+Username = user
+Password = generated password
+
+Request succeeds.
+
+Hidden Header Generated by Postman
+
+Important observation:
+
+Postman automatically creates:
+
+Authorization: Basic xxxxx
+
+header.
+
+Even though user enters username and password manually, Postman internally converts them into Base64 and sends the Authorization header.
+
+Base64 Demonstration
+
+Instructor demonstrates:
+
+user:password
+
+converted to:
+
+Base64(user:password)
+
+This is exactly the value being sent in the Authorization header.
+
+Important Note
+
+Base64 is NOT encryption.
+
+It is only encoding.
+
+Anyone can decode it.
+
+Therefore:
+
+HTTP Basic Authentication should generally be used over HTTPS.
+
+Chapter 8: Limitation of Default Security
+
+Currently:
+
+Only one generated user exists.
+
+Example:
+
+user
+
+with random password.
+
+Problem:
+
+That single user can access everything.
+
+Example:
+
+Ram's journals.
+
+Shyam's journals.
+
+Admin endpoints.
+
+Everything.
+
+This is not what we want.
+
+Desired System
+
+Ram should access:
+
+Ram's journals only
+
+Shyam should access:
+
+Shyam's journals only
+
+Admin should access:
+
+Administrative functions
+
+but not necessarily user journals.
+
+Therefore:
+
+We need customization.
+
+Spring Security provides customization through configuration classes.
+
+Chapter 9: SecurityConfig Class
+
+To customize Spring Security we create:
+
+SecurityConfig
+
+class.
+
+Purpose:
+
+Customize endpoints
+Customize authentication
+Customize authorization
+Define security rules
+@Configuration
+
+Marks class as configuration class.
+
+Allows Spring to detect and manage the class.
+
+@EnableWebSecurity
+Definition
+
+Enables Spring Security's web security support.
+
+Instructor Explanation
+
+Adding Spring Security dependency tells Spring:
+
+Security is required.
+
+Adding:
+
+@EnableWebSecurity
+
+tells Spring:
+
+I want to customize security.
+
+
+PART 2: SECURITY CONFIGURATION, HTTP SECURITY, METHOD CHAINING, LOGIN, LOGOUT, SESSIONS & STATE MANAGEMENT
+
+These notes continue directly from Part 1 and preserve the explanations, examples, and definitions given in the lecture. Source:
+
+Chapter 10: Why Do We Need SecurityConfig?
+
+After adding Spring Security:
+
+All endpoints become secured.
+One default user is created.
+One random password is generated.
+
+But real-world applications need more control.
+
+Examples:
+
+We may want:
+
+/public/**      → Public
+/journal/**     → Secured
+/admin/**       → Admin Only
+
+Some endpoints should require authentication.
+
+Some should not.
+
+Some should require specific roles.
+
+Therefore we create:
+
+SecurityConfig
+
+to customize security behavior.
+
+Chapter 11: WebSecurityConfigurerAdapter
+
+The instructor extends:
+
+WebSecurityConfigurerAdapter
+Definition
+
+WebSecurityConfigurerAdapter is a utility class provided by Spring Security.
+
+It:
+
+Provides default security configurations.
+Allows developers to customize those configurations.
+Why Extend It?
+
+By extending it:
+
+extends WebSecurityConfigurerAdapter
+
+we gain access to methods that can be overridden.
+
+These methods allow us to:
+
+Define security rules.
+Configure authentication.
+Configure authorization.
+Configure login behavior.
+Configure logout behavior.
+Instructor's Explanation
+
+Spring Security already contains many default configurations.
+
+Instead of building everything from scratch:
+
+We modify only the parts we need.
+
+Chapter 12: Overriding Configure Methods
+
+Inside:
+
+WebSecurityConfigurerAdapter
+
+many configure methods already exist.
+
+We override them.
+
+Example:
+
+@Override
+protected void configure(HttpSecurity http)
+
+and
+
+@Override
+protected void configure(
+AuthenticationManagerBuilder auth)
+
+The lecture focuses first on:
+
+HttpSecurity
+Chapter 13: HttpSecurity
+
+Method:
+
+@Override
+protected void configure(HttpSecurity http)
+What is HttpSecurity?
+
+The instructor explains:
+
+HttpSecurity is an object used for applying security filters and security rules.
+
+Through HttpSecurity we can decide:
+
+Which request should be authenticated.
+Which request should not be authenticated.
+Which login mechanism to use.
+Which logout mechanism to use.
+Session behavior.
+Authorization behavior.
+
+Think of it as:
+
+Main Security Configuration Object
+
+for HTTP requests.
+
+Chapter 14: Method Chaining
+
+Spring Security heavily uses:
+
+Method Chaining
+
+Example:
+
+http
+.authorizeRequests()
+.antMatchers("/hello")
+.permitAll()
+.anyRequest()
+.authenticated()
+.and()
+.formLogin();
+What is Method Chaining?
+
+Method chaining means:
+
+One method returns an object.
+
+Another method is immediately called on that returned object.
+
+Example:
+
+obj.method1()
+   .method2()
+   .method3();
+
+Spring Security uses this style extensively.
+
+Chapter 15: authorizeRequests()
+
+The first method:
+
+.authorizeRequests()
+Definition
+
+Starts the process of authorizing incoming requests.
+
+Instructor Explanation:
+
+Spring Security is being told:
+
+Start applying authorization rules.
+
+Nothing is secured yet.
+
+We are only entering authorization configuration mode.
+
+Chapter 16: antMatchers()
+
+Example:
+
+.antMatchers("/hello")
+Definition
+
+Specifies URL patterns to which security rules should apply.
+
+Instructor Explanation:
+
+This method identifies:
+
+Which endpoints
+
+a particular rule applies to.
+
+Example:
+
+.antMatchers("/hello")
+
+means:
+
+Apply following rule to:
+
+/hello
+
+endpoint.
+
+Chapter 17: permitAll()
+
+Example:
+
+.antMatchers("/hello")
+.permitAll()
+Definition
+
+Allows everyone to access the endpoint.
+
+Authentication is not required.
+
+Meaning:
+
+Anyone can access:
+
+/hello
+
+without:
+
+Username
+Password
+Login
+Chapter 18: anyRequest()
+
+Example:
+
+.anyRequest()
+Definition
+
+Matches every request that has not already matched another rule.
+
+Instructor Explanation:
+
+Suppose:
+
+.antMatchers("/hello")
+.permitAll()
+
+has already handled:
+
+/hello
+
+Then:
+
+.anyRequest()
+
+handles everything else.
+
+Example:
+
+/journal
+/user
+/admin
+/profile
+/settings
+
+All fall under:
+
+.anyRequest()
+Chapter 19: authenticated()
+
+Example:
+
+.anyRequest()
+.authenticated()
+Definition
+
+Requires valid authentication before access is granted.
+
+Meaning:
+
+User must provide:
+
+Valid Username
+Valid Password
+
+before accessing the endpoint.
+
+Combined Meaning
+
+The instructor explains the entire statement:
+
+http
+.authorizeRequests()
+.antMatchers("/hello")
+.permitAll()
+.anyRequest()
+.authenticated();
+
+as:
+
+Rule 1
+/hello
+
+can be accessed by everyone.
+
+Rule 2
+
+Every other endpoint requires authentication.
+
+Chapter 20: Understanding .and()
+
+Example:
+
+.and()
+Definition
+
+Returns control back to the parent configuration object.
+
+Instructor Explanation
+
+Method chaining creates nested configuration objects.
+
+Eventually we need to return back to:
+
+HttpSecurity
+
+again.
+
+That's what:
+
+.and()
+
+does.
+
+Example
+
+http
+.authorizeRequests()
+.antMatchers("/hello")
+.permitAll()
+.anyRequest()
+.authenticated()
+.and()
+.formLogin();
+
+After authorization configuration:
+
+.and()
+
+returns to:
+
+HttpSecurity
+
+and allows further configuration.
+
+Chapter 21: formLogin()
+
+Example:
+
+.formLogin()
+Definition
+
+Enables form-based authentication.
+
+What happens?
+
+If an unauthenticated user tries to access a protected endpoint:
+
+Spring Security automatically redirects them to:
+
+/login
+Default Login Page
+
+The instructor explains:
+
+Even if we do not create:
+
+/login
+
+ourselves,
+
+Spring Security automatically provides:
+
+Default Login Form
+
+The page contains:
+
+Username Field
+Password Field
+Login Button
+
+This happens because Spring Security internally provides a controller for login handling.
+
+Example
+
+User tries:
+
+/journal
+
+without authentication.
+
+Spring Security detects:
+
+Not Authenticated
+
+User is redirected to:
+
+/login
+
+Default login page appears.
+
+Chapter 22: Login Controller (Internal)
+
+The instructor explains:
+
+We never created:
+
+LoginController
+
+ourselves.
+
+Yet login page appears.
+
+Why?
+
+Because Spring Security internally provides a controller that handles:
+
+/login
+
+requests.
+
+This controller:
+
+Renders login page.
+Handles login submissions.
+Performs authentication.
+Important Real-World Note
+
+The instructor mentions:
+
+In modern applications:
+
+Frontend and backend are usually separate.
+
+Example:
+
+React Frontend
+Spring Boot Backend
+
+In such systems:
+
+We usually do NOT use:
+
+.formLogin()
+
+because frontend already has its own login page.
+
+Instead:
+
+Frontend sends credentials through API calls.
+
+Chapter 23: Logout
+
+Spring Security also supports:
+
+.logout()
+Definition
+
+Terminates user authentication session.
+
+When logout occurs:
+
+Session becomes invalid.
+Authentication information removed.
+User must login again.
+Chapter 24: Stateless Authentication
+
+The instructor now discusses:
+
+Stateful vs Stateless
+Stateless Definition
+
+A stateless system remembers nothing between requests.
+
+Each request is independent.
+
+Example:
+
+HTTP Basic Authentication.
+
+Suppose:
+
+Request 1
+
+Authorization Header
+
+is sent.
+
+Request 2
+
+Must again send:
+
+Authorization Header
+
+Request 3
+
+Must again send:
+
+Authorization Header
+
+Every request carries credentials.
+
+Nothing is remembered.
+
+Characteristics of Stateless Systems
+
+Server does NOT remember:
+
+User
+Previous request
+Login state
+
+Every request must prove identity again.
+
+Chapter 25: Stateful Authentication
+
+Stateful systems remember information.
+
+Definition
+
+A stateful system stores information about previous interactions.
+
+Example:
+
+Websites using sessions.
+
+User logs in once.
+
+Server remembers user.
+
+Future requests do not require credentials every time.
+
+Chapter 26: Session
+
+Instructor Definition:
+
+A session means remembering information between requests.
+
+Example
+
+Without session:
+
+Request 1 → No memory
+Request 2 → No memory
+Request 3 → No memory
+
+Server forgets everything.
+
+With session:
+
+Request 1 → User Logged In
+Request 2 → User Remembered
+Request 3 → User Remembered
+Chapter 27: Session Creation Process
+
+After successful login:
+
+Spring Security creates:
+
+HTTP Session
+
+Inside session:
+
+Authentication details are stored.
+
+Example:
+
+Username
+Roles
+Authorities
+
+stored in session.
+
+Chapter 28: JSESSIONID
+
+After session creation:
+
+Server sends:
+
+JSESSIONID
+
+cookie.
+
+Browser stores this cookie.
+
+Future requests automatically send:
+
+JSESSIONID
+
+back to server.
+
+Server identifies user through:
+
+JSESSIONID
+
+instead of asking for username/password again.
+
+Authentication Flow with Session
+
+Step 1:
+
+Login.
+
+Step 2:
+
+Session created.
+
+Step 3:
+
+JSESSIONID generated.
+
+Step 4:
+
+Cookie sent to browser.
+
+Step 5:
+
+Browser sends cookie with future requests.
+
+Step 6:
+
+Server recognizes user.
+
+Chapter 29: Session Expiration
+
+Sessions are temporary.
+
+If user remains inactive:
+
+Session expires.
+
+After expiration:
+
+User becomes:
+
+Logged Out
+
+and must authenticate again.
+
+Chapter 30: Remember Me
+
+Spring Security supports:
+
+.rememberMe()
+
+Purpose:
+
+Remember user even after session expiration.
+
+Instead of session cookie:
+
+A persistent cookie is used.
+
+This allows user to stay logged in for a longer period.
+
+
+PART 3: MONGODB-BASED AUTHENTICATION, USER ENTITY, USERDETAILSSERVICE, ROLES & PASSWORD ENCODING
+
+These notes continue exactly from the lecture and preserve the instructor's explanations, examples, reasoning, and implementation flow. Source:
+
+Chapter 31: Problem with Default Spring Security User
+
+Previously Spring Security created:
+
+Username = user
+Password = random password
+Problem
+
+Suppose:
+
+Database contains:
+
+Ram
+Shyam
+
+as users.
+
+But authentication is being performed using:
+
+user
+
+generated by Spring Security.
+
+This means:
+
+The same authenticated user can see:
+
+Ram's Journal
+Shyam's Journal
+Everyone's Journal
+
+Instructor explains:
+
+This is similar to an admin account.
+
+But we do not want that.
+
+Desired Behaviour
+
+We want:
+
+Ram
+
+to see:
+
+Only Ram's Journal Entries
+
+We want:
+
+Shyam
+
+to see:
+
+Only Shyam's Journal Entries
+
+Not:
+
+Ram seeing Shyam's Journals
+
+or
+
+Shyam seeing Ram's Journals
+Additional Problem
+
+Passwords are currently stored as:
+
+ram
+shyam
+
+in plain text.
+
+This is insecure.
+
+If someone gains database access:
+
+They can read every password.
+
+Therefore:
+
+Passwords must be encrypted (hashed).
+
+Chapter 32: Authentication from MongoDB
+
+The instructor defines the goal:
+
+Goal
+
+Authenticate users using credentials stored in MongoDB.
+
+Meaning:
+
+Store:
+
+Username
+Password
+
+inside MongoDB.
+
+When user logs in:
+
+Spring Security should:
+
+Step 1
+
+Read username.
+
+Step 2
+
+Fetch user from MongoDB.
+
+Step 3
+
+Verify password.
+
+Step 4
+
+Authenticate user.
+
+Architecture Overview
+
+The instructor explains four major components are required:
+
+Component 1
+
+User Entity
+
+Component 2
+
+User Repository
+
+Component 3
+
+Custom UserDetailsService
+
+Component 4
+
+Security Configuration
+
+Together these enable database authentication.
+
+Chapter 33: User Entity
+
+The application already contains:
+
+User
+
+entity.
+
+Purpose:
+
+Represents a user document stored in MongoDB.
+
+Example Structure
+
+public class User {
+
+    private String username;
+
+    private String password;
+
+    private List<JournalEntry> journalEntries;
+
+}
+
+This already exists.
+
+But one important field is missing.
+
+Chapter 34: Roles
+
+Instructor introduces:
+
+private List<String> roles;
+Why Roles?
+
+Authentication answers:
+
+Who are you?
+
+Authorization answers:
+
+What can you do?
+
+Roles help answer:
+
+What can you do?
+
+Examples
+
+Normal User
+
+ROLE_USER
+
+Administrator
+
+ROLE_ADMIN
+
+Future Examples
+
+ROLE_MANAGER
+ROLE_MODERATOR
+ROLE_EDITOR
+
+Therefore User Entity becomes:
+
+public class User {
+
+    private String username;
+
+    private String password;
+
+    private List<String> roles;
+
+}
+Why Store Roles?
+
+Suppose:
+
+Ram
+
+logs in.
+
+Database contains:
+
+{
+  "username":"ram",
+  "roles":["USER"]
+}
+
+Ram can perform user operations.
+
+Suppose:
+
+Admin
+
+logs in.
+
+Database contains:
+
+{
+  "username":"admin",
+  "roles":["ADMIN"]
+}
+
+Admin gets administrative privileges.
+
+Chapter 35: User Repository
+
+UserRepository already exists.
+
+Example:
+
+@Repository
+public interface UserRepository
+extends MongoRepository<User,String>
+{
+}
+
+Instructor notes:
+
+We already created:
+
+findByUserName()
+
+method.
+
+Example:
+
+User findByUserName(String username);
+
+Purpose:
+
+Fetch user from MongoDB using username.
+
+Example
+
+Database:
+
+{
+ "username":"ram"
+}
+
+Calling:
+
+findByUserName("ram")
+
+returns:
+
+User Object
+Chapter 36: UserDetailsService
+
+Now instructor introduces a Spring Security interface.
+
+Interface:
+
+UserDetailsService
+
+This interface is provided by Spring Security itself.
+
+Purpose:
+
+Load user details during authentication.
+
+Important Method
+loadUserByUsername()
+
+Signature:
+
+UserDetails loadUserByUsername(
+String username)
+
+This method is extremely important.
+
+Spring Security calls it automatically during authentication.
+
+Authentication Flow
+
+Suppose user enters:
+
+Username = ram
+Password = ram
+
+Spring Security receives:
+
+ram
+
+Then automatically calls:
+
+loadUserByUsername("ram")
+
+This method must return:
+
+UserDetails
+
+object.
+
+Chapter 37: Creating CustomUserDetailsService
+
+The instructor creates:
+
+CustomUserDetailsServiceImpl
+
+Implementation:
+
+implements UserDetailsService
+
+Now:
+
+loadUserByUsername()
+
+must be implemented.
+
+Step 1: Inject Repository
+@Autowired
+private UserRepository userRepository;
+
+Why?
+
+Because we need database access.
+
+Step 2: Fetch User
+User user =
+userRepository.findByUserName(username);
+
+Example
+
+Input:
+
+ram
+
+Query MongoDB.
+
+Result:
+
+User Object
+Chapter 38: User Not Found Handling
+
+Suppose:
+
+Database contains:
+
+ram
+
+User enters:
+
+rohan
+
+Database returns:
+
+null
+
+Then:
+
+throw new
+UsernameNotFoundException(
+"User not found"
+);
+Why?
+
+Spring Security must know:
+
+Authentication failed.
+
+Chapter 39: UserDetails Object
+
+Suppose user exists.
+
+Now Spring Security expects:
+
+UserDetails
+
+Not:
+
+User
+
+Therefore conversion is required.
+
+Example:
+
+return User.builder()
+
+Provide:
+
+Username
+.username(
+user.getUsername()
+)
+Password
+.password(
+user.getPassword()
+)
+Roles
+.roles(...)
+
+Then:
+
+.build();
+
+Result:
+
+UserDetails
+
+object.
+
+Why UserDetails?
+
+Spring Security understands:
+
+UserDetails
+
+It does not directly understand:
+
+Our Custom User Entity
+
+Therefore conversion is necessary.
+
+Chapter 40: Converting Roles
+
+Database stores:
+
+List<String>
+
+But:
+
+.roles()
+
+expects:
+
+String[]
+
+Therefore:
+
+user.getRoles()
+
+is converted into:
+
+toArray(new String[0])
+
+Example
+
+Before:
+
+["USER","ADMIN"]
+
+After:
+
+{"USER","ADMIN"}
+
+Then supplied to:
+
+.roles(...)
+Chapter 41: Why CustomUserDetailsService Exists
+
+Instructor emphasizes:
+
+This service tells Spring Security:
+
+How to fetch users from database.
+
+Without this:
+
+Spring Security only knows:
+
+Default user
+
+With this:
+
+Spring Security knows:
+
+MongoDB users
+Chapter 42: Integrating UserDetailsService
+
+Now SecurityConfig must use it.
+
+Inject:
+
+@Autowired
+private CustomUserDetailsServiceImpl
+customUserDetailsService;
+
+Purpose:
+
+Connect authentication system with MongoDB.
+
+Chapter 43: AuthenticationManagerBuilder
+
+Override:
+
+configure(
+AuthenticationManagerBuilder auth
+)
+
+Purpose:
+
+Configure authentication mechanism.
+
+Instructor explains:
+
+This method tells Spring Security:
+
+How authentication should happen.
+Register UserDetailsService
+
+Inside configure:
+
+auth
+.userDetailsService(
+customUserDetailsService
+);
+
+Meaning:
+
+Whenever authentication occurs:
+
+Use this service.
+
+Whenever username is received:
+
+Call:
+
+loadUserByUsername()
+
+Fetch user from MongoDB.
+
+Authentication Flow Now
+
+Before:
+
+Spring Security User
+
+After:
+
+MongoDB User
+
+Authentication now becomes:
+
+Username Entered
+↓
+loadUserByUsername()
+↓
+MongoDB Query
+↓
+User Found
+↓
+Password Verification
+↓
+Authentication Success
+Chapter 44: Password Problem
+
+Until now passwords are stored as:
+
+ram
+abc
+shyam
+
+Plain text.
+
+This is dangerous.
+
+Example
+
+Database breach.
+
+Attacker sees:
+
+ram
+
+directly.
+
+Not acceptable.
+
+Chapter 45: Password Encoder
+
+Spring Security provides:
+
+PasswordEncoder
+
+interface.
+
+Many implementations exist.
+
+The instructor uses:
+
+BCryptPasswordEncoder
+Definition
+
+BCryptPasswordEncoder converts passwords into secure hashes.
+
+Example
+
+Input:
+
+ram
+
+Output:
+
+$2a$10$8jdjF8jsj38....
+
+This output is called:
+
+Hash
+
+Not encryption.
+
+Not reversible.
+
+Chapter 46: Creating Password Encoder Bean
+
+Inside SecurityConfig:
+
+@Bean
+public PasswordEncoder
+passwordEncoder()
+{
+    return new
+    BCryptPasswordEncoder();
+}
+
+Purpose:
+
+Create reusable encoder object.
+
+Why Use Same Encoder Everywhere?
+
+Instructor explains:
+
+Same encoder is used:
+
+During Registration
+
+to hash password.
+
+During Login
+
+to verify password.
+
+Consistency is required.
+
+
+PART 4: PASSWORD HASHING, USER REGISTRATION, JOURNAL SECURITY, CSRF, STATELESS AUTHENTICATION, SECURITYCONTEXTHOLDER & SECURE USER MANAGEMENT
+
+These notes continue directly from Part 3 and preserve the instructor's explanations, examples, and implementation flow. Source:
+
+Chapter 47: BCrypt Password Hashing
+
+The instructor now focuses on password security.
+
+Problem
+
+Current password storage:
+
+{
+  "username":"ram",
+  "password":"ram"
+}
+
+Problem:
+
+If database is compromised:
+
+Attacker can immediately read:
+
+ram
+
+as password.
+
+This is called:
+
+Plain Text Password Storage
+
+and is considered a serious security vulnerability.
+
+Solution: BCrypt Hashing
+
+Instead of storing:
+
+ram
+
+store:
+
+$2a$10$w7Xc9h2K...
+
+This is called a:
+
+Hash
+Important Point
+
+The instructor repeatedly emphasizes:
+
+BCrypt does NOT encrypt.
+
+BCrypt hashes.
+
+Difference:
+
+Encryption
+
+Can be reversed.
+
+Original Data
+↓
+Encryption
+↓
+Encrypted Data
+↓
+Decryption
+↓
+Original Data
+Hashing
+
+Cannot practically be reversed.
+
+Original Data
+↓
+Hash Function
+↓
+Hash Value
+
+No reverse operation exists.
+
+Why BCrypt?
+
+Advantages:
+
+1. One-way
+
+Cannot retrieve original password.
+
+2. Salted
+
+Adds randomness automatically.
+
+3. More Secure
+
+Resistant against dictionary attacks.
+
+Instructor Demonstration
+
+Input:
+
+ram
+
+BCrypt Output:
+
+$2a$10$H8sksj39dk...
+
+Input again:
+
+ram
+
+Output:
+
+$2a$10$A92jdj3jd...
+
+Notice:
+
+Both hashes are different.
+
+Question:
+
+How can verification work if hashes are different?
+
+Answer:
+
+BCrypt internally stores salt information.
+
+It knows how to verify.
+
+Chapter 48: User Registration Flow
+
+Suppose user submits:
+
+{
+   "username":"ram",
+   "password":"ram"
+}
+
+Before saving:
+
+Spring executes:
+
+passwordEncoder.encode(
+user.getPassword()
+)
+
+Example
+
+Input:
+
+ram
+
+Output:
+
+$2a$10$xyz...
+
+Then:
+
+user.setPassword(hashedPassword);
+
+Finally:
+
+userRepository.save(user);
+Database After Registration
+
+Instead of:
+
+{
+  "username":"ram",
+  "password":"ram"
+}
+
+Database contains:
+
+{
+  "username":"ram",
+  "password":"$2a$10$xyz..."
+}
+Why This Is Secure
+
+Even if attacker gets database access:
+
+They can see:
+
+$2a$10$xyz...
+
+but cannot determine:
+
+ram
+Chapter 49: Login Flow Using BCrypt
+
+User enters:
+
+Username = ram
+Password = ram
+
+Question:
+
+Database contains:
+
+$2a$10$xyz...
+
+User entered:
+
+ram
+
+How can comparison happen?
+
+Instructor Explanation
+
+Step 1
+
+User enters password.
+
+ram
+
+Step 2
+
+Spring Security fetches stored hash.
+
+$2a$10$xyz...
+
+Step 3
+
+BCrypt verifies:
+
+Entered Password
+vs
+Stored Hash
+
+Step 4
+
+Returns:
+
+true
+
+or
+
+false
+Authentication Flow
+Username Entered
+↓
+Fetch User from MongoDB
+↓
+Fetch Stored Hash
+↓
+Compare Password
+↓
+Match?
+↓
+YES → Login Success
+NO → Unauthorized
+Chapter 50: Journal Endpoint Security
+
+The instructor now starts securing journal APIs.
+
+Previously:
+
+GET /journal/{username}
+
+Problem:
+
+Anybody could pass:
+
+ram
+
+or
+
+shyam
+
+and access journals.
+
+Need authentication.
+
+Security Configuration
+http
+.authorizeRequests()
+.antMatchers("/journal/**")
+.authenticated()
+.anyRequest()
+.permitAll()
+.and()
+.httpBasic();
+Meaning
+
+Any URL beginning with:
+
+/journal/
+
+requires authentication.
+
+Everything else:
+
+permitAll()
+
+remains public.
+
+Chapter 51: Wildcard Pattern (**)
+
+Instructor explains:
+
+"/journal/**"
+Definition
+
+Wildcard pattern.
+
+Meaning:
+
+Anything after:
+
+/journal/
+
+is acceptable.
+
+Examples
+
+Matches:
+
+/journal
+
+Matches:
+
+/ journal/ram
+
+Matches:
+
+/journal/123
+
+Matches:
+
+/journal/entry/45
+
+Matches:
+
+/journal/anything
+Chapter 52: HTTP Basic Authentication Configuration
+
+The instructor switches from:
+
+.formLogin()
+
+to:
+
+.httpBasic()
+
+Reason:
+
+Application is API-based.
+
+Not browser-based.
+
+Frontend will send:
+
+Authorization Header
+
+instead of displaying login forms.
+
+Therefore:
+
+http.httpBasic();
+
+is more appropriate.
+
+Chapter 53: Public and Secured APIs
+
+Instructor separates endpoints.
+
+Public APIs
+
+Accessible without authentication.
+
+Examples:
+
+/public/**
+
+Used for:
+
+Registration
+Health Check
+Signup
+Secured APIs
+
+Require authentication.
+
+Examples:
+
+/user/**
+/journal/**
+
+Used for:
+
+Update User
+Delete User
+View Journals
+Chapter 54: CSRF (Cross Site Request Forgery)
+
+The instructor introduces:
+
+CSRF
+Definition
+
+Cross Site Request Forgery.
+
+A security attack where a user is tricked into sending an unwanted authenticated request.
+
+Bank Example
+
+Instructor's example:
+
+Suppose user is logged into:
+
+Bank Website
+
+Browser stores:
+
+Session Cookie
+
+User then visits:
+
+Malicious Website
+
+Malicious website contains:
+
+<button>
+Click Here
+</button>
+
+User clicks button.
+
+Button secretly triggers:
+
+POST /transferMoney
+
+Because browser already contains bank session cookie:
+
+Bank believes:
+
+Request came from authenticated user
+
+Money gets transferred.
+
+Why Attack Works
+
+Because browser automatically sends:
+
+Session Cookie
+
+to bank.
+
+Bank trusts session.
+
+Chapter 55: CSRF Protection
+
+To prevent attack:
+
+Spring Security uses:
+
+CSRF Token
+How CSRF Token Works
+
+Valid webpage contains:
+
+<input hidden
+value="csrfToken">
+
+Request must contain:
+
+Valid CSRF Token
+
+If missing:
+
+Request rejected.
+
+Response:
+
+403 Forbidden
+Why Attacker Cannot Generate Token
+
+Because:
+
+CSRF token is generated by legitimate server.
+
+Attacker does not know it.
+
+Therefore:
+
+Attack fails.
+
+Chapter 56: Why CSRF Is Disabled Here
+
+Instructor disables CSRF.
+
+http.csrf().disable();
+
+Reason:
+
+Application is:
+
+REST API
+
+Using:
+
+HTTP Basic Authentication
+
+Not relying on browser sessions.
+
+No HTML forms.
+
+No session cookies.
+
+Therefore:
+
+CSRF protection unnecessary.
+
+Chapter 57: Session Management
+
+Instructor notes:
+
+Spring Security sometimes mixes:
+
+HTTP Basic Authentication
+
+with
+
+Session Management
+
+This can create stateful behavior.
+
+But API should remain:
+
+Stateless
+Stateless Configuration
+http
+.sessionManagement()
+.sessionCreationPolicy(
+SessionCreationPolicy.STATELESS
+);
+Meaning
+
+Do NOT create sessions.
+
+Do NOT create JSESSIONID.
+
+Do NOT store authentication state.
+
+Every request must authenticate itself.
+
+Benefits
+Simpler
+
+Every request independent.
+
+Scalable
+
+No session storage needed.
+
+Better for APIs
+
+Works well with:
+
+Mobile Apps
+React Frontend
+Angular Frontend
+Microservices
+Chapter 58: Problem with Path Parameters
+
+Old approach:
+
+GET /journal/ram
+
+Problem:
+
+Username manually supplied.
+
+User can replace:
+
+ram
+
+with:
+
+shyam
+
+Potential security issue.
+
+Better Approach
+
+Use authenticated user.
+
+Spring Security already knows:
+
+Who logged in
+
+No need to pass username.
+
+Chapter 59: SecurityContextHolder
+
+Instructor introduces:
+
+SecurityContextHolder
+Purpose
+
+Stores authentication information of current authenticated user.
+
+Getting Authentication Object
+Authentication auth =
+SecurityContextHolder
+.getContext()
+.getAuthentication();
+Getting Username
+auth.getName();
+
+Returns:
+
+ram
+
+if Ram logged in.
+
+Why This Is Better
+
+Instead of:
+
+GET /journal/ram
+
+use:
+
+auth.getName();
+
+Now user cannot access another user's data.
+
+Chapter 60: Update User API
+
+Instructor creates:
+
+PUT /user
+
+This endpoint is secured.
+
+Authentication required.
+
+Flow
+
+Step 1
+
+User logs in.
+
+Step 2
+
+Spring Security authenticates.
+
+Step 3
+
+Username retrieved:
+
+auth.getName();
+
+Step 4
+
+Fetch user from MongoDB.
+
+Step 5
+
+Update fields.
+
+Step 6
+
+Hash new password.
+
+Step 7
+
+Save user.
+
+Password Update Example
+
+Old Password:
+
+ram
+
+New Password:
+
+abc
+
+Before saving:
+
+passwordEncoder.encode("abc");
+
+Store hash.
+
+Never store plain text.
+
+Chapter 61: Delete User API
+
+Instructor creates:
+
+DELETE /user
+
+No username parameter required.
+
+Use:
+
+auth.getName();
+
+Then:
+
+userRepository
+.deleteByUserName(
+auth.getName()
+);
+
+Result:
+
+Authenticated user deletes own account.
+
+Cannot delete someone else's account.
+
+Final Secure Architecture
+Public APIs
+/public/create-user
+
+Accessible by everyone.
+
+Authenticated APIs
+/user/**
+/journal/**
+
+Require login.
+
+Authentication Source
+MongoDB
+Password Storage
+BCrypt Hash
+Session Policy
+STATELESS
+Authentication Mechanism
+HTTP Basic Authentication
+Current User Access
+SecurityContextHolder
+Complete Flow of the Application
+User Registers
+↓
+Password Hashed
+↓
+Saved to MongoDB
+↓
+User Sends Username + Password
+↓
+HTTP Basic Authentication
+↓
+CustomUserDetailsService
+↓
+MongoDB User Fetch
+↓
+BCrypt Verification
+↓
+Authentication Success
+↓
+SecurityContextHolder Stores User
+↓
+Journal/User APIs Accessed
+↓
+auth.getName() Returns Logged-In User
+↓
+User Sees Only Own Data
