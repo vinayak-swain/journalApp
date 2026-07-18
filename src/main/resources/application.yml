@@ -1,9 +1,9 @@
 spring:
     data:
         mongodb:
-        uri: mongodb+srv://vinayakswain49_db_user:vinayak1809@cluster0.rkecvg0.mongodb.net/?appName=Cluster0
-        database: journaldb
-        auto-index-creation: true
+            uri: mongodb+srv://vinayakswain49_db_user:vinayak1809@cluster0.rkecvg0.mongodb.net/?appName=Cluster0
+            database: journaldb
+            auto-index-creation: true
 
 server:
     port: 8081
