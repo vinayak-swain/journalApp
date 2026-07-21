@@ -4,6 +4,8 @@ import com.vinayak.journalApp.entity.JournalEntry;
 import com.vinayak.journalApp.entity.User;
 import com.vinayak.journalApp.repository.JournalEntryRepository;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,8 @@ public class JournalEntryService {
 
     @Autowired
     private UserService userService;
+
+    private static final Logger logger= LoggerFactory.getLogger(JournalEntryService.class);
 
     @Transactional
     public void saveEntry(JournalEntry journalEntry, String userName) {
