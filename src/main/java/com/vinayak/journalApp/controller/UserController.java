@@ -1,8 +1,10 @@
 package com.vinayak.journalApp.controller;
 
+import com.vinayak.journalApp.api.response.WeatherResponse;
 import com.vinayak.journalApp.entity.User;
 import com.vinayak.journalApp.repository.UserRepository;
 import com.vinayak.journalApp.service.UserService;
+import com.vinayak.journalApp.service.WeatherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +24,8 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAll();
-    }
+    @Autowired
+    private WeatherService weatherService;
 
 
     @PutMapping
@@ -46,6 +46,17 @@ public class UserController {
         Authentication authetication=SecurityContextHolder.getContext().getAuthentication();
         userRepository.deleteByUserName(authetication.getName());
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping
+    public ResponseEntity<?>greeting(){
+        Authentication authetication=SecurityContextHolder.getContext().getAuthentication();
+        WeatherResponse weatherResponse = weatherService.getwheather("delhi");
+        String greeting ="";
+        if(weatherResponse!=null){
+            greeting=", weather feels like "+weatherResponse.getCurrent().getFeelslike();
+        }
+        return new ResponseEntity<>("Hi "+authetication.getName() +greeting ,HttpStatus.OK);
     }
 }
 

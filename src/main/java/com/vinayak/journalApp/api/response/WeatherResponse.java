@@ -1,0 +1,43 @@
+package com.vinayak.journalApp.api.response;
+
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+
+@Getter
+@Setter
+public class WeatherResponse{
+    private Current current;
+
+
+
+    @Getter
+    @Setter
+    public class Current{
+        @JsonProperty("weather_description")
+        private String observation_time;
+        private int temperature;
+        private int weather_code;
+        private ArrayList<String> weather_icons;
+        private ArrayList<String> weather_descriptions;
+        // private com.vinayak.journalApp.api.response.Astro astro;
+        // private com.vinayak.journalApp.api.response.AirQuality air_quality;
+        private int wind_speed;
+        private int wind_degree;
+        private String wind_dir;
+        private int pressure;
+        private int precip;
+        private int humidity;
+        private int cloudcover;
+        private int feelslike;
+        private int uv_index;
+        private int visibility;
+        private String is_day;
+    }
+
+}
+
