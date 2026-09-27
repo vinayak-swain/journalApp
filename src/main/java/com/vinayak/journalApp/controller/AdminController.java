@@ -1,6 +1,7 @@
 package com.vinayak.journalApp.controller;
 
 
+import com.vinayak.journalApp.cache.AppCache;
 import com.vinayak.journalApp.entity.User;
 import com.vinayak.journalApp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,5 +31,12 @@ public class AdminController {
     @PostMapping("/create-admin-user")
     public void createUser(@RequestBody User user) {
         userService.saveAdmin(user);
+    }
+    @Autowired
+    private AppCache appCache;
+
+    @GetMapping("/clear-app-cache")
+        public void clearAppCache(){
+        appCache.init();
     }
 }

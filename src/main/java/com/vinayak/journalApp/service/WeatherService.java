@@ -1,6 +1,8 @@
 package com.vinayak.journalApp.service;
 
 import com.vinayak.journalApp.api.response.WeatherResponse;
+import com.vinayak.journalApp.cache.AppCache;
+import com.vinayak.journalApp.constants.Placeholders;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -13,13 +15,14 @@ public class WeatherService {
 
     @Value("${weatherstack.api.key}")
     private String apikey;
-    private static final String API="http://api.weatherstack.com/current?access_key=API_KEY&query=CITY";
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private AppCache appCache;
 
     public WeatherResponse getwheather(String city){
-        String finalAPI=API.replace("CITY",city).replace("API_KEY",apikey);
+        String finalAPI=appCache.appCache.get("AppCache.keys.WEATHER_API.toString()").replace(Placeholders.CITY,city).replace(Placeholders.API_KEY,apikey);
         ResponseEntity<WeatherResponse> response = restTemplate.exchange(finalAPI, HttpMethod.POST, null, WeatherResponse.class);
         WeatherResponse body = response.getBody();
         return body;
