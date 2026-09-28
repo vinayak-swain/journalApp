@@ -4,6 +4,18 @@ spring:
             uri: mongodb+srv://vinayakswain49_db_user:mongodb@cluster0.rkecvg0.mongodb.net/journaldb?retryWrites=true&w=majority&appName=Cluster0
             database: journaldb
             auto-index-creation: true
+    mail:
+        host: smtp.gmail.com
+        port: 587
+        username: vinayakswain1809@gmail.com
+        password: dcai zvsf lhsn adpv
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    starttls:
+                        enable: true
+
 
 server:
     port: 8080
