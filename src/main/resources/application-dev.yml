@@ -14,3 +14,4 @@ server:
 weatherstack:
     api:
         key: 2e3f0c1d4b5a6c7d8e9f0a1b2c3d4e5f
+
