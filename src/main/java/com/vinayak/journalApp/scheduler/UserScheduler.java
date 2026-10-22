@@ -4,10 +4,12 @@ import com.vinayak.journalApp.cache.AppCache;
 import com.vinayak.journalApp.entity.JournalEntry;
 import com.vinayak.journalApp.entity.User;
 import com.vinayak.journalApp.enums.Sentiment;
+import com.vinayak.journalApp.model.SentimentData;
 import com.vinayak.journalApp.repository.UserRepositoryImpl;
 import com.vinayak.journalApp.service.EmailService;
 import com.vinayak.journalApp.service.SentimentAnalysisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,9 @@ public class UserScheduler {
     @Autowired
     private AppCache appCache;
 
+    @Autowired
+    private KafkaTemplate<String, SentimentData> kafkaTemplate;
+
     @Scheduled(cron = "0 0 9 * * SUN")
     public void fetchUsersAndSendSaMail() {
         List<User> users = userRepository.getUserForSA();
@@ -52,8 +57,13 @@ public class UserScheduler {
                 }
             }
             if (mostFrequentSentiment != null) {
-                emailService.sendEmail(user.getEmail(), "Weekly Sentiment Analysis", mostFrequentSentiment.toString());
 
+                SentimentData sentimentData= SentimentData.builder().email(user.getEmail()).sentiment("Sentiment for last 7 days " + mostFrequentSentiment).build();
+                try{
+                    kafkaTemplate.send("weekly-sentiments", sentimentData.getEmail(), sentimentData);
+                }catch (Exception e) {
+                    emailService.sendEmail(user.getEmail(), "Weekly Sentiment Analysis", mostFrequentSentiment.toString());
+                }
             }
         }
     }
