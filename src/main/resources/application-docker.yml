@@ -32,16 +32,13 @@ spring:
       properties:
         spring.json.trusted.packages: com.vinayak.journalApp.model
     properties:
-      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
-      sasl.mechanism: ${KAFKA_SASL_MECHANISM:PLAIN}
-      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
+      security.protocol: PLAINTEXT
 server:
-  port: ${PORT:8080}
+  port: 8080
   servlet:
     context-path: /journal
-security:
-  jwt:
-    secret: ${JWT_SECRET:local-docker-jwt-secret-change-this-32chars}
 weatherstack:
   api:
     key: ${WEATHERSTACK_API_KEY:}
+
+

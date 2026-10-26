@@ -42,5 +42,3 @@ application-dev.yml
 # Local environment secrets
 .env
 
-# Render deployment Blueprint
-!/render.yaml

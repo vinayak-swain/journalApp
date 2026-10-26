@@ -143,17 +143,6 @@ docker compose up --build
 Compose persists database, cache, and Kafka data in named volumes. Stop the services with `docker compose down`; remove their data with `docker compose down -v`.
 
 Weather greetings and outgoing email need credentials. Set `WEATHERSTACK_API_KEY` and SMTP settings in `.env` to enable those integrations. The Docker profile uses local MongoDB, Redis, and Kafka containers; it does not use the external services in the dev profile.
-## Deploy on Render
-
-The root `render.yaml` Blueprint creates the Docker web service and a Render Key Value cache. MongoDB and Kafka are external dependencies: prepare a MongoDB Atlas connection URI and a Kafka provider that supports SASL/SSL before creating the Blueprint.
-
-1. Commit and push this repository, including `render.yaml`, to a Git provider connected to Render.
-2. In Render, choose **New → Blueprint**, select this repository, and apply the Blueprint.
-3. When prompted, provide `SPRING_DATA_MONGODB_URI`, `KAFKA_SERVERS`, and `KAFKA_SASL_JAAS_CONFIG`. The Blueprint generates `JWT_SECRET` and wires the cache automatically.
-4. In MongoDB Atlas, allow the outbound IP ranges shown on the Render service's **Connect → Outbound** tab, and use the matching Atlas region where possible.
-5. After the deploy succeeds, check `https://<service-name>.onrender.com/journal/public/health-check`.
-
-Set `WEATHERSTACK_API_KEY` and SMTP settings in the Render service environment if those integrations are needed. Render Free web services sleep after 15 minutes without traffic, so the first request after idle may take about a minute. Free services also cannot send SMTP over ports 25, 465, or 587; use a paid instance or an email provider/API on an allowed port for production email.
 ## Configuration
 
 Profile configuration lives in:
@@ -294,5 +283,7 @@ http://localhost:8080/journal/swagger-ui.html
 - Weather and notification features depend on external services and their profile configuration.
 - The sentiment classifier is currently a placeholder; the scheduler can process sentiments already present on journal entries.
 - The JWT expiration is configured in `JwtUtil` to one hour.
+
+
 
 
