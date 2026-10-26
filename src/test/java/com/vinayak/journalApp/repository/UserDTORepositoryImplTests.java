@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.bson.assertions.Assertions.assertTrue;
 
 @SpringBootTest
-public class UserRepositoryImplTests {
+public class UserDTORepositoryImplTests {
 
     @Autowired
     private UserRepositoryImpl userRepository;

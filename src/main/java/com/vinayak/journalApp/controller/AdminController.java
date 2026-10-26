@@ -4,6 +4,7 @@ package com.vinayak.journalApp.controller;
 import com.vinayak.journalApp.cache.AppCache;
 import com.vinayak.journalApp.entity.User;
 import com.vinayak.journalApp.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ObjectInputStream;
 import java.util.List;
 
+@Tag(name ="Admin APIs")
 @RestController
 @RequestMapping("/admin")
 public class AdminController {

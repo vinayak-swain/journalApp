@@ -1,0 +1,37 @@
+services:
+  - type: keyvalue
+    name: journal-cache
+    plan: free
+    region: singapore
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  - type: web
+    name: journal-app-api
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /journal/public/health-check
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: docker
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SPRING_DATA_MONGODB_URI
+        sync: false
+      - key: SPRING_DATA_MONGODB_DATABASE
+        value: journaldb
+      - key: SPRING_DATA_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: journal-cache
+          property: connectionString
+      - key: KAFKA_SERVERS
+        sync: false
+      - key: KAFKA_SECURITY_PROTOCOL
+        value: SASL_SSL
+      - key: KAFKA_SASL_MECHANISM
+        value: PLAIN
+      - key: KAFKA_SASL_JAAS_CONFIG
+        sync: false
+

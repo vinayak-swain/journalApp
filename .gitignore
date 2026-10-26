@@ -35,3 +35,12 @@ build/
 
 # Local development secrets
 application-dev.yml
+
+# Docker Spring profile
+!src/main/resources/application-docker.yml
+
+# Local environment secrets
+.env
+
+# Render deployment Blueprint
+!/render.yaml

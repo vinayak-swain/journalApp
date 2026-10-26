@@ -21,9 +21,9 @@ A REST API for personal journaling. Users can create an account, sign in to rece
 - Sign up and log in with a username and password.
 - Hash passwords with BCrypt.
 - Issue and validate JWTs for authenticated requests.
-- Create, list, update, and delete journal entries belonging to the signed-in user.
+- Create, list, update, and delete journal entries belonging to the signed-in userDTO.
 - Assign `USER` and `ADMIN` roles to accounts.
-- Return a weather greeting from the user endpoint, with Redis caching.
+- Return a weather greeting from the userDTO endpoint, with Redis caching.
 - Calculate the most frequent non-null journal sentiment over the previous seven days and send a weekly notification through Kafka and email.
 - Refresh application configuration cache on a schedule.
 
@@ -89,7 +89,7 @@ sequenceDiagram
     User->>Client: Submit userName and password
     Client->>API: POST /journal/public/login
     API->>Auth: Authenticate credentials
-    Auth->>DB: Load user and BCrypt hash
+    Auth->>DB: Load userDTO and BCrypt hash
     DB-->>Auth: User details and roles
     Auth-->>API: Authentication result
     API-->>Client: JWT on success
@@ -98,7 +98,7 @@ sequenceDiagram
     API-->>Client: User's authorized resource
 ```
 
-The token currently carries the username as its subject. For protected requests, the JWT filter loads the user's details and authorities from MongoDB.
+The token currently carries the username as its subject. For protected requests, the JWT filter loads the userDTO's details and authorities from MongoDB.
 
 ## Getting started
 
@@ -130,6 +130,30 @@ java -jar target\journalApp-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
 
 By default, the dev profile listens on port `8080` and sets the servlet context path to `/journal`. Controller paths are therefore prefixed with `/journal` in full request URLs. For example, the journal controller route `/journal` is reached at `http://localhost:8080/journal/journal`.
 
+## Run the backend with Docker
+
+Docker Compose starts the Spring Boot API, MongoDB, Redis, and a single-node Kafka broker. The API is available at `http://localhost:8080/journal`.
+
+```powershell
+Copy-Item .env.example .env
+# Optional: edit .env to configure weather and SMTP integrations.
+docker compose up --build
+```
+
+Compose persists database, cache, and Kafka data in named volumes. Stop the services with `docker compose down`; remove their data with `docker compose down -v`.
+
+Weather greetings and outgoing email need credentials. Set `WEATHERSTACK_API_KEY` and SMTP settings in `.env` to enable those integrations. The Docker profile uses local MongoDB, Redis, and Kafka containers; it does not use the external services in the dev profile.
+## Deploy on Render
+
+The root `render.yaml` Blueprint creates the Docker web service and a Render Key Value cache. MongoDB and Kafka are external dependencies: prepare a MongoDB Atlas connection URI and a Kafka provider that supports SASL/SSL before creating the Blueprint.
+
+1. Commit and push this repository, including `render.yaml`, to a Git provider connected to Render.
+2. In Render, choose **New → Blueprint**, select this repository, and apply the Blueprint.
+3. When prompted, provide `SPRING_DATA_MONGODB_URI`, `KAFKA_SERVERS`, and `KAFKA_SASL_JAAS_CONFIG`. The Blueprint generates `JWT_SECRET` and wires the cache automatically.
+4. In MongoDB Atlas, allow the outbound IP ranges shown on the Render service's **Connect → Outbound** tab, and use the matching Atlas region where possible.
+5. After the deploy succeeds, check `https://<service-name>.onrender.com/journal/public/health-check`.
+
+Set `WEATHERSTACK_API_KEY` and SMTP settings in the Render service environment if those integrations are needed. Render Free web services sleep after 15 minutes without traffic, so the first request after idle may take about a minute. Free services also cannot send SMTP over ports 25, 465, or 587; use a paid instance or an email provider/API on an allowed port for production email.
 ## Configuration
 
 Profile configuration lives in:
@@ -155,7 +179,7 @@ http://localhost:8080/journal
 | Method | Full path | Description |
 | --- | --- | --- |
 | `GET` | `/journal/public/health-check` | Health check; returns `ok`. |
-| `POST` | `/journal/public/signup` | Create a user with a BCrypt-hashed password and the `USER` role. |
+| `POST` | `/journal/public/signup` | Create a userDTO with a BCrypt-hashed password and the `USER` role. |
 | `POST` | `/journal/public/login` | Authenticate and receive a JWT. |
 
 Signup and login JSON use the Java field name `userName`:
@@ -175,13 +199,13 @@ Authorization: Bearer <your-token>
 
 ### Journal routes
 
-All routes below require a valid Bearer token and operate on the authenticated user's entries.
+All routes below require a valid Bearer token and operate on the authenticated userDTO's entries.
 
 | Method | Full path | Description |
 | --- | --- | --- |
-| `GET` | `/journal/journal` | List the current user's entries. The implementation returns `404` when the user has no entries. |
+| `GET` | `/journal/journal` | List the current userDTO's entries. The implementation returns `404` when the userDTO has no entries. |
 | `POST` | `/journal/journal` | Create an entry. |
-| `GET` | `/journal/journal/id/{entryId}` | Get an entry owned by the current user. |
+| `GET` | `/journal/journal/id/{entryId}` | Get an entry owned by the current userDTO. |
 | `PUT` | `/journal/journal/id/{entryId}` | Update an owned entry. |
 | `DELETE` | `/journal/journal/id/{entryId}` | Delete an owned entry. |
 
@@ -200,9 +224,9 @@ Require a valid Bearer token.
 
 | Method | Full path | Description |
 | --- | --- | --- |
-| `GET` | `/journal/user` | Return a greeting for the authenticated user and include weather when available. |
-| `PUT` | `/journal/user` | Update the authenticated user's username/password. |
-| `DELETE` | `/journal/user` | Delete the authenticated user's account. |
+| `GET` | `/journal/userDTO` | Return a greeting for the authenticated userDTO and include weather when available. |
+| `PUT` | `/journal/userDTO` | Update the authenticated userDTO's username/password. |
+| `DELETE` | `/journal/userDTO` | Delete the authenticated userDTO's account. |
 
 ### Admin routes
 
@@ -211,7 +235,7 @@ The security configuration restricts `/admin/**` to users with the `ADMIN` role.
 | Method | Full path | Description |
 | --- | --- | --- |
 | `GET` | `/journal/admin/all-users` | List users. |
-| `POST` | `/journal/admin/create-admin-user` | Create an admin user. |
+| `POST` | `/journal/admin/create-admin-userDTO` | Create an admin userDTO. |
 | `GET` | `/journal/admin/clear-app-cache` | Reload the application cache. |
 
 ### Typical Postman workflow
@@ -247,8 +271,8 @@ flowchart TD
 src/main/java/com/vinayak/journalApp/
 ├── cache/          Application configuration cache
 ├── config/         Spring Security and Redis configuration
-├── controller/     Public, journal, user, and admin REST endpoints
-├── entity/         MongoDB user, journal, and configuration documents
+├── controller/     Public, journal, userDTO, and admin REST endpoints
+├── entity/         MongoDB userDTO, journal, and configuration documents
 ├── filter/         JWT request filter
 ├── repository/     MongoDB repositories and custom queries
 ├── scheduler/      Scheduled cache refresh and weekly notifications
@@ -260,6 +284,8 @@ src/main/resources/
 ├── application-dev.yml
 └── application-prod.yml
 ```
+#Swagger UI url
+http://localhost:8080/journal/swagger-ui.html
 
 ## Notes
 
@@ -268,3 +294,5 @@ src/main/resources/
 - Weather and notification features depend on external services and their profile configuration.
 - The sentiment classifier is currently a placeholder; the scheduler can process sentiments already present on journal entries.
 - The JWT expiration is configured in `JwtUtil` to one hour.
+
+
